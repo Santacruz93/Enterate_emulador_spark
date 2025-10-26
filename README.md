@@ -12,7 +12,7 @@ Proyecto de **Ingeniería de Datos** que integra:
 2. [Estructura del repo](#estructura-del-repo)
 3. [Requisitos](#requisitos)
 4. [Variables de entorno](#variables-de-entorno)
-5. [Flags para la configuracion de la VM en Intellij con JDK 17](#Flags para la configuracion de la VM en Intellij con JDK 17)
+5. [Flags para la configuracion de la VM en Intellij con JDK 17](#Flags-para-la-configuracion-de-la-VM-en-Intellij-con-JDK-17)
 
 ---
 
