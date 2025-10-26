@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <option name="separateProdTestSources" value="true" />
+    <profile name="sbt 1" modules="Enterate_emulador_spark,Enterate_emulador_spark.main,Enterate_emulador_spark.test,SparkEOI,SparkEOI.main,SparkEOI.test,enterate-emulador-spark,enterate-emulador-spark.main,enterate-emulador-spark.test" />
+  </component>
+</project>
