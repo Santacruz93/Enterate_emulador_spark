@@ -11,6 +11,7 @@ import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord}
 object Emulator {
 
   // ------------ Tipos y configuración ------------
+
   case class Zone(
                    district: String,
                    neighborhood: String,
@@ -32,6 +33,7 @@ object Emulator {
                    )
 
   // ------------ Carga de zonas desde CSV ------------
+
   def loadZones(csvPath: String): Vector[Zone] = {
     val f = new File(csvPath)
     require(f.exists(), s"zones csv no encontrado: $csvPath")
@@ -57,6 +59,7 @@ object Emulator {
   }
 
   // ------------ Utilidades aleatorias ------------
+
   private def randBetween(min: Double, max: Double): Double =
     ThreadLocalRandom.current().nextDouble(min, max) // continuo
 
@@ -70,16 +73,18 @@ object Emulator {
   }
 
   // ------------ Catálogo de tipos de incidentes ------------
+
   private val incidentTypes: Vector[String] = Vector(
-    "power_outage", "road_closure", "water_cut",
-    "gas_leak", "noise_complaint", "tree_fall"
+    "Corte_energia", "Cierre_calle", "Corte_de_agua",
+    "Corte_de_gas", "Quejas_de_ruidos"
   )
 
   // Incidentes activos para coincidencia entre ciudadanos
-  // clave: (district, neighborhood, type) -> incidentId activo
+
   private val activeIncidents = TrieMap.empty[(String,String,String), String]
 
   // ------------ Kafka producer ------------
+
   private def mkProducer(bootstrap: String): KafkaProducer[String, String] = {
     val props = new Properties()
     props.put("bootstrap.servers", bootstrap)
@@ -209,7 +214,6 @@ object Emulator {
     )
   }
 
-  // ------------ Entrada pública ------------
   def start(cfg: Config): Unit = {
     require(cfg.gapMinMinutes >= 1 && cfg.gapMaxMinutes >= cfg.gapMinMinutes,
       s"GAP_MIN=${cfg.gapMinMinutes} y GAP_MAX=${cfg.gapMaxMinutes} deben ser válidos")

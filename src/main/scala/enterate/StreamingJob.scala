@@ -12,7 +12,7 @@ import java.time.format.DateTimeFormatter
 import scala.util.control.NonFatal
 import scala.collection.JavaConverters._
 
-// Jackson para construir JSON válido
+
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
 
@@ -49,7 +49,7 @@ object StreamingJob {
     val OUTPUT_DIR        = sys.env.getOrElse("OUTPUT_DIR", defaultOut)
     val CHECKPOINT_DIR    = sys.env.getOrElse("CHECKPOINT_DIR", defaultCheckpoint)
 
-    // API real según tu Swagger: POST /incidents/
+    // Aqui pueden encontrar las api de Enterate
     val API_URL = sys.env.getOrElse("API_URL", "http://localhost:8001/incidents/")
     val CITY    = sys.env.getOrElse("CITY", "Madrid")
 
@@ -64,7 +64,7 @@ object StreamingJob {
     // ========= Esquema esperado del emulador =========
     val schema = StructType(Seq(
       StructField("report_id", StringType),
-      StructField("report_kind", StringType),      // "new" | "end"
+      StructField("report_kind", StringType),
       StructField("incident_id", StringType),
       StructField("type", StringType),
       StructField("title", StringType),
@@ -75,7 +75,7 @@ object StreamingJob {
       StructField("incident_lon", DoubleType),
       StructField("lat", DoubleType),
       StructField("lon", DoubleType),
-      StructField("reported_at", StringType),      // ISO-8601
+      StructField("reported_at", StringType),
       StructField("status", StringType),
       StructField("ended_at", StringType),
       StructField("source", StringType),
@@ -104,16 +104,18 @@ object StreamingJob {
       )
       .withColumn("event_ts", to_timestamp(col("reported_at")))
 
+    // ========= Estructura para las reglas de negocios =========
+
     // ========= 3) Flags + watermark =========
     val withFlags = parsed
       .withColumn("is_new", when(col("report_kind") === lit("new"), lit(1)).otherwise(lit(0)))
       .withColumn("is_end", when(col("report_kind") === lit("end"), lit(1)).otherwise(lit(0)))
-      .withWatermark("event_ts", "10 minutes")
+      .withWatermark("event_ts", "15 minutes")
 
     // ========= 4) Ventana 5 min por zona + tipo =========
     val agg = withFlags
       .groupBy(
-        window(col("event_ts"), "5 minutes"),
+        window(col("event_ts"), "10 minutes"),
         col("district"),
         col("neighborhood"),
         col("type")
@@ -148,6 +150,7 @@ object StreamingJob {
       )
 
     // ========= 6) Único sink: foreachBatch -> CSV + POST /incidents/ =========
+
     val query = decision.writeStream
       .outputMode("update")
       .option("checkpointLocation", CHECKPOINT_DIR)
@@ -183,10 +186,10 @@ object StreamingJob {
             val eventId = s"${district}_${neighborhood}_${category}_${wStart.getTime}"
 
             // === NUEVO: status de negocio
-            // Si solo hay reportes de fin (regla resolved_only) => "closed", en caso contrario => "active"
+
             val statusBiz = if (reason == "resolved_only" || (endCount >= 1 && newCount == 0)) "closed" else "active"
 
-            // JSON seguro con Jackson
+
             val root: ObjectNode = mapper.createObjectNode()
             root.put("source", "spark")
             root.put("category", category)      // <- el tipo de situación

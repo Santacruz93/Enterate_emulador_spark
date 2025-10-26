@@ -37,7 +37,7 @@ object Main {
 
     Emulator.start(cfg)
 
-    // mantener proceso vivo
+
     while (true) Thread.sleep(60000)
   }
 }
